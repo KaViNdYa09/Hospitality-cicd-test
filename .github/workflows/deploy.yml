@@ -19,6 +19,10 @@ jobs:
           ssh-add ~/.ssh/deploy_key
           ssh-keyscan -H 157.245.157.69 >> ~/.ssh/known_hosts
 
-      - name: Test SSH Connection
+      - name: Test SSH Connection and Create Directory
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@157.245.157.69 "echo '✅ Connected to server successfully!'"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@157.245.157.69 << 'EOF'
+            echo "Connected to server successfully!"
+            mkdir -p ~/Testing
+            echo "Created 'Testing' directory on server."
+          EOF
