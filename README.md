@@ -1,18 +1,4 @@
-# Hospitality-cicd-test
-Welcome to my GitHub repo! 🚀
+# This project is created to test and demonstrate CI/CD integration. It focuses on automating the build, test, and deployment process to ensure efficient and reliable software delivery using continuous integration and continuous deployment practices.
 
-## About
-This repository is created as a starting point for my project. Here, I'll add code, workflows, and useful files as I continue building.
-
-## How to Use
-- Clone the repository: `git clone https://github.com/your-username/your-repo.git`
-- Add files and commit changes: `git add . && git commit -m "Initial commit"`
-- Push updates: `git push origin main`
-
-## License
-This project is open-source under the MIT License.
-
----
-
-Happy coding! 😃
+<img width="1415" alt="image" src="https://github.com/user-attachments/assets/797cfbb4-09c7-476a-bd26-29e20c7d9faa" />
 
