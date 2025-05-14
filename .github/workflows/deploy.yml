@@ -3,7 +3,7 @@ name: Test SSH Connection
 on:
   push:
     branches:
-      - 123
+      - main
 
 jobs:
   test-ssh:
@@ -19,10 +19,8 @@ jobs:
           ssh-add ~/.ssh/deploy_key
           ssh-keyscan -H 157.245.157.69 >> ~/.ssh/known_hosts
 
-      - name: Test SSH Connection and Create Directory
+      - name: Test SSH Connection
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@157.245.157.69 << 'EOF'
             echo "Connected to server successfully!"
-            mkdir -p ~/Testing
-            echo "Created 'Testing' directory on server."
           EOF
