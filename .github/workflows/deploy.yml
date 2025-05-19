@@ -1,12 +1,12 @@
-name: Test SSH Connection
+name: Deploy to Server
 
 on:
   push:
     branches:
-      - 123
+      - 123456
 
 jobs:
-  test-ssh:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,8 +19,51 @@ jobs:
           ssh-add ~/.ssh/deploy_key
           ssh-keyscan -H 157.245.157.69 >> ~/.ssh/known_hosts
 
-      - name: Test SSH Connection
+      - name: Deploy Project to Server
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@157.245.157.69 << 'EOF'
-            echo "Connected to server successfully!"
+            echo "Connected to server..."
+
+            cd ~/Hospitality-mgt-system
+
+            echo "Stopping existing services..."
+            pm2 stop all
+
+            echo "Cleaning and pulling latest code..."
+            git checkout main
+            git stash
+            git pull https://x-access-token:${ACCESS_TOKEN}@github.com/SLTDigitalLab/Hospitality-mgt-system.git main
+
+            echo "Installing backend dependencies..."
+            cd backend
+            npm install
+            cd ..
+
+            echo "Installing frontend dependencies..."
+            cd frontend
+            npm install --legacy-peer-deps
+            cd ..
+
+            echo "Restarting backend and frontend..."
+            pm2 restart backend
+            pm2 restart frontend
+
+            echo "Restarting AI backend..."
+            cd ai-backend
+            source venv/bin/activate
+            pm2 restart ai-backend
+            cd ..
+
+            echo "Building frontend..."
+            cd frontend
+            npm run build
+            scp -r build/* root@157.245.157.69:/var/www/hotelmateai/
+            cd ..
+
+            echo "Restarting Nginx..."
+            sudo systemctl restart nginx
+
+            echo "Deployment completed!"
           EOF
