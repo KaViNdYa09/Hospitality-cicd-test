@@ -1,14 +1,13 @@
 name: Deploy to Server
-
 on:
   push:
     branches:
-      - 123456
-
+      - 1234567
+      
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Setup SSH
         run: |
@@ -18,52 +17,55 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/deploy_key
           ssh-keyscan -H 157.245.157.69 >> ~/.ssh/known_hosts
-
+          
       - name: Deploy Project to Server
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@157.245.157.69 << 'EOF'
+          # Pass the ACCESS_TOKEN to the SSH command
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@157.245.157.69 "export ACCESS_TOKEN='$ACCESS_TOKEN'; bash -s" << 'EOF'
             echo "Connected to server..."
-
+            
             cd ~/Hospitality-mgt-system
-
+            
             echo "Stopping existing services..."
             pm2 stop all
-
+            
             echo "Cleaning and pulling latest code..."
             git checkout main
             git stash
-            git pull https://x-access-token:${ACCESS_TOKEN}@github.com/SLTDigitalLab/Hospitality-mgt-system.git main
-
+            # Use the ACCESS_TOKEN environment variable that was passed to the SSH session
+            git pull https://${ACCESS_TOKEN}@github.com/SLTDigitalLab/Hospitality-mgt-system.git main
+            
             echo "Installing backend dependencies..."
             cd backend
             npm install
             cd ..
-
+            
             echo "Installing frontend dependencies..."
             cd frontend
             npm install --legacy-peer-deps
             cd ..
-
+            
             echo "Restarting backend and frontend..."
             pm2 restart backend
             pm2 restart frontend
-
+            
             echo "Restarting AI backend..."
             cd ai-backend
-            source venv/bin/activate
+            source venv/bin/activate || true
             pm2 restart ai-backend
             cd ..
-
+            
             echo "Building frontend..."
             cd frontend
             npm run build
-            scp -r build/* root@157.245.157.69:/var/www/hotelmateai/
+            # We're already on the server when running this, so use cp
+            cp -r build/* /var/www/hotelmateai/
             cd ..
-
+            
             echo "Restarting Nginx..."
-            sudo systemctl restart nginx
-
-            echo "Deployment completed!"
+            systemctl restart nginx
+            
+           echo "Deployment completed!"
           EOF
